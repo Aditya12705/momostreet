@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Restaurant Menu</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Poppins', sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
+        .header { 
+            background: linear-gradient(45deg, #8b0000, #ff0000); 
+            color: white; 
+            padding: 2rem 1rem; 
+            text-align: center; 
+        }
+        .header h1 { margin: 0; font-size: 2.5rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+        .container { max-width: 800px; margin: 2rem auto; }
+        .category { background: white; margin: 1rem; padding: 1.5rem; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .item { display: flex; justify-content: space-between; align-items: flex-start; padding: 1rem; margin: 0.5rem 0; background: #fff; border-radius: 8px; transition: all 0.3s ease; }
+        .item:hover { transform: translateX(5px); box-shadow: 0 2px 15px rgba(0,0,0,0.1); }
+        .item-info { flex: 1; }
+        .item-name { display: block; font-weight: 600; color: #2c3e50; font-size: 1.1rem; margin-bottom: 0.3rem; }
+        .extras { display: block; font-size: 0.9rem; color: #666; font-style: italic; }
+        .item-price { color: #27ae60; font-weight: 600; font-size: 1.1rem; background: #e8f5e9; padding: 0.5rem 1rem; border-radius: 20px; margin-left: 1rem; white-space: nowrap; }
+        @media (max-width: 600px) { 
+            .container { margin: 1rem; }
+            .category { margin: 1rem 0; }
+            .item { padding: 0.8rem; }
+        }
+
+        /* New styles for navigation and category headers */
+        .nav-container {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: white;
+            padding: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .filter-options {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1.5rem;
+            border: none;
+            border-radius: 20px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .filter-btn.veg {
+            background: #e8f5e9;
+            color: #2e7d32;
+            border: 1px solid #2e7d32;
+        }
+
+        .filter-btn.non-veg {
+            background: #ffebee;
+            color: #c62828;
+            border: 1px solid #c62828;
+        }
+
+        .filter-btn.active {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 1rem;
+            overflow-x: auto;
+            padding: 0.5rem;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        .nav-menu::-webkit-scrollbar {
+            display: none;
+        }
+
+        .nav-item {
+            padding: 0.5rem 1rem;
+            background: #f5f5f5;
+            border-radius: 20px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item:hover {
+            background: #2c3e50;
+            color: white;
+        }
+
+        /* Update category header styles */
+        .item.category-item {
+            background: none;
+            border: none;
+            box-shadow: none;
+            padding: 1rem;
+            margin: 1.5rem 0 0.5rem 0;
+            align-items: center; /* Center align the header and price */
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .item.category-item .item-info {
+            margin: 0;
+        }
+
+        .item.category-item .item-name {
+            font-style: italic;
+            color: #d32f2f;
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .item.category-item .item-price {
+            color: #d32f2f;
+            background: none;
+            font-style: italic;
+            font-size: 1.3rem;
+            font-weight: 600;
+            padding: 0;
+            margin: 0;
+        }
+
+        .item.category-item:hover {
+            transform: none;
+            box-shadow: none;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Hamburger menu styles */
+        .menu-toggle {
+            display: none;
+            flex-direction: column;
+            gap: 4px;
+            padding: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .menu-toggle span {
+            display: block;
+            width: 25px;
+            height: 3px;
+            background: #2c3e50;
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .nav-container {
+                flex-direction: column;
+            }
+            
+            .menu-toggle {
+                display: flex;
+                position: fixed;
+                top: 10px;
+                right: 10px;
+                z-index: 1000;
+            }
+
+            .menu-toggle.active span:nth-child(1) {
+                transform: translateY(7px) rotate(45deg);
+            }
+
+            .menu-toggle.active span:nth-child(2) {
+                opacity: 0;
+            }
+
+            .menu-toggle.active span:nth-child(3) {
+                transform: translateY(-7px) rotate(-45deg);
+            }
+
+            .nav-menu {
+                display: none;
+                width: 100%;
+                flex-direction: column;
+                background: white;
+                padding: 1rem;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            }
+
+            .nav-menu.active {
+                display: flex;
+            }
+
+            .nav-item {
+                width: 100%;
+                text-align: center;
+                padding: 0.8rem;
+            }
+
+            .filter-options {
+                width: 100%;
+                flex-wrap: wrap;
+            }
+
+            .filter-btn {
+                flex: 1;
+                min-width: 120px;
+                margin: 0.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>MOMO STREET</h1>
+    </div>
+
+    <div class="nav-container">
+        <button class="menu-toggle" onclick="toggleMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="filter-options">
+            <button class="filter-btn veg" onclick="filterMenu('veg')">Veg Only</button>
+            <button class="filter-btn non-veg" onclick="filterMenu('non-veg')">Non-veg Only</button>
+            <button class="filter-btn" onclick="filterMenu('all')">Show All</button>
+        </div>
+        <div class="nav-menu" id="navMenu">
+            <!-- Navigation items will be added dynamically -->
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="category">
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Plain Maggi</span>
+                    <span class='extras'>(Add Cheese Rs 30)</span>
+                </div>
+                <span class="item-price">₹49</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Butter Maggi</span>
+                    <span class='extras'>(Add Cheese Rs 30)</span>
+                </div>
+                <span class="item-price">₹59</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Veg Maggi</span>
+                    <span class='extras'>(Add Cheese Rs 30)</span>
+                </div>
+                <span class="item-price">₹69</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Paneer Maggi</span>
+                    <span class='extras'>(Add Cheese Rs 30)</span>
+                </div>
+                <span class="item-price">₹79</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Corn Maggi</span>
+                    <span class='extras'>(Add Cheese Rs 30)</span>
+                </div>
+                <span class="item-price">₹69</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Egg Maggi</span>
+                    <span class='extras'>(Add Cheese Rs 30)</span>
+                </div>
+                <span class="item-price">₹79</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chicken Maggi</span>
+                    <span class='extras'>(Add Cheese Rs 30)</span>
+                </div>
+                <span class="item-price">₹89</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">QUICK STARTERS</span>
+                </div>
+                <span class="item-price">₹Price</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Bread Omelette</span>
+                </div>
+                <span class="item-price">₹49</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chicken Nuggets (5pcs)</span>
+                </div>
+                <span class="item-price">₹89</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chicken Spring Roll (4pcs)</span>
+                </div>
+                <span class="item-price">₹129</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Veg Spring Roll (5pcs)</span>
+                </div>
+                <span class="item-price">₹89</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Paneer Spring Roll (4pcs)</span>
+                </div>
+                <span class="item-price">₹109</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chicken Seekh Kabab (4 pcs)</span>
+                </div>
+                <span class="item-price">₹149</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Bucket (1 Chk Drumstick+3 Chk Wings)</span>
+                </div>
+                <span class="item-price">₹289</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">CHINESE STARTERS</span>
+                </div>
+                <span class="item-price">₹Price</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Veg Manchurian (7-8 Pcs)</span>
+                </div>
+                <span class="item-price">₹129</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Paneer Manchurian(7-8 Pcs)</span>
+                </div>
+                <span class="item-price">₹149</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chicken Manchurian(7-8 Pcs)</span>
+                </div>
+                <span class="item-price">₹169</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">DESI HITS</span>
+                </div>
+                <span class="item-price">₹Price</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Mumbai Vada Pav</span>
+                </div>
+                <span class="item-price">₹50</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Cheesy vada Pav</span>
+                </div>
+                <span class="item-price">₹65</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Spicy Bhel Poori</span>
+                </div>
+                <span class="item-price">₹55</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Butter Pav Bhaji</span>
+                </div>
+                <span class="item-price">₹70</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Hara Bhara Kebab(5 pcs)</span>
+                </div>
+                <span class="item-price">₹70</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">ROLLS</span>
+                </div>
+                <span class="item-price">₹Price</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Butter Paneer Roll</span>
+                </div>
+                <span class="item-price">₹89</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Paneer Tikka Roll</span>
+                </div>
+                <span class="item-price">₹119</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Khadai Paneer Roll</span>
+                </div>
+                <span class="item-price">₹119</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Omelette Roll</span>
+                </div>
+                <span class="item-price">₹69</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Butter Chicken Roll</span>
+                </div>
+                <span class="item-price">₹109</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chicken Tikka Roll</span>
+                </div>
+                <span class="item-price">₹139</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Khadai Chicken Roll</span>
+                </div>
+                <span class="item-price">₹139</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Seekh Kebab Roll</span>
+                </div>
+                <span class="item-price">₹139</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">PARATHA MEAL</span>
+                </div>
+                <span class="item-price">₹Price</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Aloo Paratha</span>
+                    <span class='extras'>Paratha + Curd+ Pickle</span>
+                </div>
+                <span class="item-price">₹99</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Gobi paratha</span>
+                    <span class='extras'>Paratha + Sauce + Pickle</span>
+                </div>
+                <span class="item-price">₹109</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Paratha (Non- Veg Combo)</span>
+                    <span class='extras'>2 Paratha + Boneless Chicken  Gravy</span>
+                </div>
+                <span class="item-price">₹119</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Paratha (Veg Combo)</span>
+                    <span class='extras'>2 Paratha + Paneer Gravy</span>
+                </div>
+                <span class="item-price">₹109</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">FRIED MOMO</span>
+                </div>
+                <span class="item-price">₹Price</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Veg Momo</span>
+                </div>
+                <span class="item-price">₹79</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Paneer Momo</span>
+                </div>
+                <span class="item-price">₹99</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Corn Cheese Momo</span>
+                </div>
+                <span class="item-price">₹119</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Pizza Momo</span>
+                </div>
+                <span class="item-price">₹139</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Egg Bhurji Momo</span>
+                </div>
+                <span class="item-price">₹89</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chicken Momo</span>
+                </div>
+                <span class="item-price">₹99</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chicken Cheese Momo</span>
+                </div>
+                <span class="item-price">₹139</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Peri Peri Chicken Momo</span>
+                </div>
+                <span class="item-price">₹149</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">KURKURE MOMO</span>
+                </div>
+                <span class="item-price">₹Price</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Veg Hot & Crispy Momo</span>
+                </div>
+                <span class="item-price">₹99</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Paneer Hot & Crispy Momo</span>
+                </div>
+                <span class="item-price">₹119</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Corn Cheese Hot & Crispy Momo</span>
+                </div>
+                <span class="item-price">₹139</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Pizza Hot & Crispy Momo</span>
+                </div>
+                <span class="item-price">₹159</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Egg Bhurji Hot & Crispy Momo</span>
+                </div>
+                <span class="item-price">₹109</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chicken Hot & Crispy Momo</span>
+                </div>
+                <span class="item-price">₹119</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chicken Cheese Hot & Crispy Momos</span>
+                </div>
+                <span class="item-price">₹159</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Peri Peri Chicken Hot & Crispy Momo</span>
+                </div>
+                <span class="item-price">₹169</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">STEAM MOMO</span>
+                </div>
+                <span class="item-price">₹Price</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Veg Momo</span>
+                </div>
+                <span class="item-price">₹69</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Paneer Momo</span>
+                </div>
+                <span class="item-price">₹89</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Corn Cheese Momo</span>
+                </div>
+                <span class="item-price">₹109</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Pizza Momo</span>
+                </div>
+                <span class="item-price">₹129</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Egg Bhurji Momo</span>
+                </div>
+                <span class="item-price">₹79</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chicken Momo</span>
+                </div>
+                <span class="item-price">₹89</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chicken Cheese Momo</span>
+                </div>
+                <span class="item-price">₹129</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Peri Peri Chicken Momo</span>
+                </div>
+                <span class="item-price">₹139</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">SANDWHICHES</span>
+                </div>
+                <span class="item-price">₹Price</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Veg Grilled Sandwich</span>
+                </div>
+                <span class="item-price">₹79</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chicken Grilled Sandwich</span>
+                </div>
+                <span class="item-price">₹99</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Paneer Tandoori Sandwich</span>
+                </div>
+                <span class="item-price">₹109</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chicken Tandoori Sandwich</span>
+                </div>
+                <span class="item-price">₹119</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">BURGERS</span>
+                </div>
+                <span class="item-price">₹Price</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Classic Veg Burger</span>
+                    <span class='extras'>(Add Cheese Rs 30)</span>
+                </div>
+                <span class="item-price">₹69</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Classic Chicken Burger</span>
+                    <span class='extras'>(Add Cheese Rs 30)</span>
+                </div>
+                <span class="item-price">₹99</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Tandoori Paneer Burger</span>
+                </div>
+                <span class="item-price">₹119</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">BBQ Chicken Burger</span>
+                </div>
+                <span class="item-price">₹129</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">SIDES</span>
+                </div>
+                <span class="item-price">₹Price</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Salty Fries</span>
+                </div>
+                <span class="item-price">₹69</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Peri Peri Fries</span>
+                </div>
+                <span class="item-price">₹79</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Cream and Onion Fries</span>
+                </div>
+                <span class="item-price">₹89</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Honey Chilli Potato</span>
+                </div>
+                <span class="item-price">₹99</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Crispy Corn</span>
+                </div>
+                <span class="item-price">₹109</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Paneer Chilli (7-8 Pcs)</span>
+                </div>
+                <span class="item-price">₹149</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chicken Chilli (7-8 Pcs)</span>
+                </div>
+                <span class="item-price">₹169</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Garlic Bread</span>
+                </div>
+                <span class="item-price">₹79</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chesse Garlic Bread</span>
+                </div>
+                <span class="item-price">₹109</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">PIZZA</span>
+                </div>
+                <span class="item-price">₹Price</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">VEG</span>
+                </div>
+                <span class="item-price">₹Regular (7")</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Margherita Pizza</span>
+                    <span class='extras'>ADD Cheese Burst Crust (Regular - Rs. 40, Medium - Rs. 60)</span>
+                </div>
+                <span class="item-price">₹149</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Golden Corn Pizza</span>
+                    <span class='extras'>ADD Cheese Burst Crust (Regular - Rs. 40, Medium - Rs. 60)</span>
+                </div>
+                <span class="item-price">₹159</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Veg Supreme Pizza</span>
+                    <span class='extras'>ADD Cheese Burst Crust (Regular - Rs. 40, Medium - Rs. 60)</span>
+                </div>
+                <span class="item-price">₹169</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Paneer Makhni Pizza</span>
+                    <span class='extras'>ADD Cheese Burst Crust (Regular - Rs. 40, Medium - Rs. 60)</span>
+                </div>
+                <span class="item-price">₹169</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Tandoori Paneer Pizza</span>
+                    <span class='extras'>ADD Cheese Burst Crust (Regular - Rs. 40, Medium - Rs. 60)</span>
+                </div>
+                <span class="item-price">₹169</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Farm House Pizza</span>
+                    <span class='extras'>ADD Cheese Burst Crust (Regular - Rs. 40, Medium - Rs. 60)</span>
+                </div>
+                <span class="item-price">₹179</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Mushroom Delight</span>
+                    <span class='extras'>ADD Cheese Burst Crust (Regular - Rs. 40, Medium - Rs. 60)</span>
+                </div>
+                <span class="item-price">₹189</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chilli Mushroom </span>
+                    <span class='extras'>ADD Cheese Burst Crust (Regular - Rs. 40, Medium - Rs. 60)</span>
+                </div>
+                <span class="item-price">₹189</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">CHICKEN</span>
+                </div>
+                <span class="item-price">₹Regular (7")</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chicken Classico Pizza</span>
+                    <span class='extras'>ADD Cheese Burst Crust (Regular - Rs. 40, Medium - Rs. 60)</span>
+                </div>
+                <span class="item-price">₹159</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Butter Chicken Pizza</span>
+                    <span class='extras'>ADD Cheese Burst Crust (Regular - Rs. 40, Medium - Rs. 60)</span>
+                </div>
+                <span class="item-price">₹179</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Pepper Chicken Pizza</span>
+                    <span class='extras'>ADD Cheese Burst Crust (Regular - Rs. 40, Medium - Rs. 60)</span>
+                </div>
+                <span class="item-price">₹189</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Kadhai Chicken Pizza</span>
+                    <span class='extras'>ADD Cheese Burst Crust (Regular - Rs. 40, Medium - Rs. 60)</span>
+                </div>
+                <span class="item-price">₹189</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Farmhouse Chicken Pizza</span>
+                    <span class='extras'>ADD Cheese Burst Crust (Regular - Rs. 40, Medium - Rs. 60)</span>
+                </div>
+                <span class="item-price">₹199</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chilli Chicken Pizza</span>
+                    <span class='extras'>ADD Cheese Burst Crust (Regular - Rs. 40, Medium - Rs. 60)</span>
+                </div>
+                <span class="item-price">₹209</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Tripple Chicken Pizza</span>
+                    <span class='extras'>ADD Cheese Burst Crust (Regular - Rs. 40, Medium - Rs. 60)</span>
+                </div>
+                <span class="item-price">₹219</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">BBQ Chicken Pizza</span>
+                    <span class='extras'>ADD Cheese Burst Crust (Regular - Rs. 40, Medium - Rs. 60)</span>
+                </div>
+                <span class="item-price">₹229</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">NOODLES</span>
+                </div>
+                <span class="item-price">₹Price</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Veg Noodles</span>
+                </div>
+                <span class="item-price">₹89</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Veg Schezwan Noodles</span>
+                </div>
+                <span class="item-price">₹109</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Egg Noodles</span>
+                </div>
+                <span class="item-price">₹99</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Egg Schezwan Noodles </span>
+                </div>
+                <span class="item-price">₹119</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chicken Noodles</span>
+                </div>
+                <span class="item-price">₹129</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chicken Schezwan Noodles </span>
+                </div>
+                <span class="item-price">₹149</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">FRIED RICE</span>
+                </div>
+                <span class="item-price">₹Price</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Veg Fried Rice</span>
+                </div>
+                <span class="item-price">₹129</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name"> Veg Schezwan Fried Rice</span>
+                </div>
+                <span class="item-price">₹169</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Veg Burnt Garlic Fried Rice</span>
+                </div>
+                <span class="item-price">₹149</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Egg Fried Rice</span>
+                </div>
+                <span class="item-price">₹139</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Paneer Fried Rice</span>
+                </div>
+                <span class="item-price">₹139</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chicken Fried Rice</span>
+                </div>
+                <span class="item-price">₹149</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Burnt Garlic Chicken Fried Rice</span>
+                </div>
+                <span class="item-price">₹179</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Schezwan Chicken Fried Rice</span>
+                </div>
+                <span class="item-price">₹189</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">RICE BOWL</span>
+                </div>
+                <span class="item-price">₹Price</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Kadai Paneer Rice Bowl</span>
+                </div>
+                <span class="item-price">₹139</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Butter Paneer Rice Bowl</span>
+                </div>
+                <span class="item-price">₹149</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chilli Paneer Rice Bowl</span>
+                </div>
+                <span class="item-price">₹159</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Kadai Chicken Rice Bowl</span>
+                </div>
+                <span class="item-price">₹159</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Butter Chicken Rice Bowl</span>
+                </div>
+                <span class="item-price">₹169</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chilli Chicken Rice Bowl</span>
+                </div>
+                <span class="item-price">₹179</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">PASTA</span>
+                </div>
+                <span class="item-price">₹Price</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Veg Arrabbiata (Red) Pasta</span>
+                </div>
+                <span class="item-price">₹199</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Veg Alfredo (White) Pasta</span>
+                </div>
+                <span class="item-price">₹209</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Veg Pink Penne Pasta</span>
+                </div>
+                <span class="item-price">₹219</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Veg Riso Oliva Pasta Pasta</span>
+                </div>
+                <span class="item-price">₹229</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chicken Arrabbiata (Red) Pasta</span>
+                </div>
+                <span class="item-price">₹219</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chicken Alfredo (White) Pasta</span>
+                </div>
+                <span class="item-price">₹229</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chicken Pink Penne Pasta</span>
+                </div>
+                <span class="item-price">₹239</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chicken Riso Oliva Pasta Pasta</span>
+                </div>
+                <span class="item-price">₹249</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">COMBOS</span>
+                </div>
+                <span class="item-price">₹Price</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Noodle Combo (Veg)</span>
+                    <span class='extras'>Veg Noodles + Popcorn Bites (Veg) + Cold Drink</span>
+                </div>
+                <span class="item-price">₹119</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Noodle Combo (Non-Veg)</span>
+                    <span class='extras'>Chicken Noodles + Popcorn Bites(Non- Veg) + Cold Drink</span>
+                </div>
+                <span class="item-price">₹139</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Burger Combo (Veg)</span>
+                    <span class='extras'>Classic Veg Burger + Salty Fries+Cold Drink(250ml)</span>
+                </div>
+                <span class="item-price">₹99</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Burger Combo (Non-Veg)</span>
+                    <span class='extras'>Classic Chicken Burger + Salty Fries+Cold Drink(250ml)</span>
+                </div>
+                <span class="item-price">₹119</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Fried Rice Combo (Veg)</span>
+                    <span class='extras'>Veg Fried Rice + Mojito(Watermelon/Mango)</span>
+                </div>
+                <span class="item-price">₹189</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Fried Rice Combo (Non-Veg)</span>
+                    <span class='extras'>Chicken Fried Rice + Mojito(Watermelon/Mango)</span>
+                </div>
+                <span class="item-price">₹209</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chilli Chicken Rice Bowl Combo</span>
+                    <span class='extras'>Chilli Chicken Rice Bowl + Mojito(Watermelon/Mango)</span>
+                </div>
+                <span class="item-price">₹219</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Kadhai Paneer Rice Bowl Combo</span>
+                    <span class='extras'>Kadhai Paneer Rice Bowl + Mojito(Watermelon/Mango)</span>
+                </div>
+                <span class="item-price">₹219</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Pasta Combo (Veg)</span>
+                    <span class='extras'>Veg Alfredo (White) Pasta +Vanila Milk Shake</span>
+                </div>
+                <span class="item-price">₹209</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Pasta Combo (Non-Veg)</span>
+                    <span class='extras'>Chicken Alfredo (White) Pasta + Vanila Milk Shake</span>
+                </div>
+                <span class="item-price">₹229</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">MILK SHAKES</span>
+                </div>
+                <span class="item-price">₹Price</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Cold Coffee</span>
+                </div>
+                <span class="item-price">₹79</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Vanilla Milkshake</span>
+                </div>
+                <span class="item-price">₹89</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Butterscotch Milkshake</span>
+                </div>
+                <span class="item-price">₹89</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Strawberry Milkshake</span>
+                </div>
+                <span class="item-price">₹99</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Chocolate Milkshake</span>
+                </div>
+                <span class="item-price">₹109</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Mango Milkshake</span>
+                </div>
+                <span class="item-price">₹109</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Oreo Milkshake</span>
+                </div>
+                <span class="item-price">₹119</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">KitKat Milkshake</span>
+                </div>
+                <span class="item-price">₹129</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">MOJITOS</span>
+                </div>
+                <span class="item-price">₹Price</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Lemonade</span>
+                </div>
+                <span class="item-price">₹49</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Mango Mint Mojito</span>
+                </div>
+                <span class="item-price">₹69</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Watermelon Mojito</span>
+                </div>
+                <span class="item-price">₹69</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Virgin Mojito</span>
+                </div>
+                <span class="item-price">₹79</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Green Apple Mojito</span>
+                </div>
+                <span class="item-price">₹79</span>
+            </div>
+            <div class="item">
+                <div class="item-info">
+                    <span class="item-name">Cucumber Mojito</span>
+                </div>
+                <span class="item-price">₹79</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get all category headers and create navigation
+        const categories = Array.from(document.querySelectorAll('.item-name'))
+            .filter(el => el.textContent === el.textContent.toUpperCase())
+            .map(el => el.textContent);
+
+        const navMenu = document.getElementById('navMenu');
+        categories.forEach(category => {
+            const navItem = document.createElement('div');
+            navItem.className = 'nav-item';
+            navItem.textContent = category;
+            navItem.onclick = () => scrollToCategory(category);
+            navMenu.appendChild(navItem);
+        });
+
+        // Update category styling application
+        document.querySelectorAll('.item-name').forEach(el => {
+            if (el.textContent === el.textContent.toUpperCase()) {
+                const itemElement = el.closest('.item');
+                itemElement.classList.add('category-item');
+                el.classList.add('category-header');
+            }
+        });
+
+        // Classify items as veg/non-veg
+        document.querySelectorAll('.item').forEach(item => {
+            const name = item.querySelector('.item-name').textContent.toLowerCase();
+            if (name.includes('chicken') || name.includes('egg') || 
+                name.includes('non-veg')) {
+                item.classList.add('non-veg-item');
+            } else if (!name.includes('price')) {
+                item.classList.add('veg-item');
+            }
+        });
+
+        function filterMenu(type) {
+            const items = document.querySelectorAll('.item');
+            items.forEach(item => {
+                if (type === 'all') {
+                    item.classList.remove('hidden');
+                } else if (type === 'veg') {
+                    item.classList.toggle('hidden', item.classList.contains('non-veg-item'));
+                } else if (type === 'non-veg') {
+                    item.classList.toggle('hidden', item.classList.contains('veg-item'));
+                }
+            });
+
+            // Update active button state
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent.toLowerCase().includes(type));
+            });
+        }
+
+        function scrollToCategory(category) {
+            const element = Array.from(document.querySelectorAll('.item-name'))
+                .find(el => el.textContent === category);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function toggleMenu() {
+            const menuToggle = document.querySelector('.menu-toggle');
+            const navMenu = document.getElementById('navMenu');
+            menuToggle.classList.toggle('active');
+            navMenu.classList.toggle('active');
+        }
+
+        // Close menu when clicking outside
+        document.addEventListener('click', (e) => {
+            const navMenu = document.getElementById('navMenu');
+            const menuToggle = document.querySelector('.menu-toggle');
+            if (!navMenu.contains(e.target) && !menuToggle.contains(e.target)) {
+                navMenu.classList.remove('active');
+                menuToggle.classList.remove('active');
+            }
+        });
+
+        // Close menu when clicking a category
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const navMenu = document.getElementById('navMenu');
+                const menuToggle = document.querySelector('.menu-toggle');
+                navMenu.classList.remove('active');
+                menuToggle.classList.remove('active');
+            });
+        });
+    </script>
+</body>
+</html>
